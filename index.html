@@ -237,6 +237,15 @@ button,input{font-family:var(--font);color:var(--text);border:none;outline:none;
     <div id="muRow" class="field" style="display:none">
       <label>μs (from part a) <span class="utag ut-t">—</span></label>
       <div class="iw"><input id="inp_mu" value="0.293" placeholder="0.293"></div>
+      <div id="muNote" style="display:none;align-items:center;gap:6px;margin-top:6px;padding:7px 10px;
+        border-radius:8px;background:var(--teal-glow);border:1px solid rgba(79,209,197,.3);font-size:11px;color:var(--teal);line-height:1.5">
+        <span style="font-size:14px">🔗</span>
+        <span><b>Auto-filled from Part (a)</b> — μs computed above is used here.<br>
+        You may override it manually if needed.</span>
+      </div>
+      <div class="help" style="margin-top:6px">
+        <b>μs must come from Part (a).</b> Solve Part (a) first — the coefficient found at impending slip is the same surface property used to check whether the block slips in Part (b).
+      </div>
     </div>
 
     <button class="solve-btn" id="solveBtn">⚡ Solve &amp; Animate</button>
@@ -345,9 +354,26 @@ function setMode(m){
   MODE = m;
   document.getElementById('modeA').classList.toggle('active', m==='a');
   document.getElementById('modeB').classList.toggle('active', m==='b');
-  document.getElementById('muRow').style.display = m==='b' ? 'block' : 'none';
+  const muRow = document.getElementById('muRow');
+  muRow.style.display = m==='b' ? 'block' : 'none';
   document.getElementById('resCard').style.display = 'none';
   document.getElementById('errMsg').style.display = 'none';
+
+  // Auto-fill μs from Part A result when switching to Part B
+  if(m==='b'){
+    const muInput = document.getElementById('inp_mu');
+    const muNote  = document.getElementById('muNote');
+    if(window.MU_FROM_A !== undefined){
+      muInput.value = window.MU_FROM_A.toFixed(4);
+      muInput.style.borderColor='var(--teal)';
+      muInput.style.boxShadow='0 0 0 3px var(--teal-glow)';
+      if(muNote) muNote.style.display='flex';
+    } else {
+      muInput.style.borderColor='';
+      muInput.style.boxShadow='';
+      if(muNote) muNote.style.display='none';
+    }
+  }
   warn();
 }
 
@@ -378,7 +404,7 @@ function C(){
 const cv = document.getElementById('cvs');
 const cx = cv.getContext('2d');
 let raf = null;
-window.TAB = 'fbd'; window.P = null;
+window.TAB = 'fbd'; window.P = null; window.MU_FROM_A = undefined;
 
 function fmt(v,d=3){ return (v===null||!isFinite(v)) ? '?' : Number(v).toFixed(d); }
 function eo(x){ return 1 - Math.pow(1-Math.max(0,Math.min(1,x)), 4); }
@@ -622,25 +648,59 @@ function drawFBD(p, t){
     }
   }
 
-  /* SUMMARY BOX — top-right corner */
+  /* SUMMARY BOX — top-right corner, fully opaque for readability */
   if(t5>0 && p){
     const a = eo(t5);
-    const bw=258, bh=p.mode==='a'?82:98;
+    const bw=272, bh=p.mode==='a'?100:116;
     const bx=s.W-bw-14, by=12;
     cx.save(); cx.globalAlpha=a;
-    cx.fillStyle=Cl.box; cx.strokeStyle=Cl.boxB; cx.lineWidth=1.5;
-    cx.beginPath(); cx.roundRect(bx,by,bw,bh,12); cx.fill(); cx.stroke(); cx.restore();
+    // Box background — solid, not transparent
+    cx.fillStyle=dark?'#0f1e35':'#e8f1fb';
+    cx.strokeStyle=dark?'#63b3ed':'#2b6cb0';
+    cx.lineWidth=1.8;
+    cx.shadowColor=dark?'rgba(99,179,237,0.35)':'rgba(43,108,176,0.25)';
+    cx.shadowBlur=12;
+    cx.beginPath(); cx.roundRect(bx,by,bw,bh,13); cx.fill(); cx.stroke();
+    cx.shadowBlur=0;
+    // Top accent stripe
+    cx.fillStyle=dark?'#63b3ed':'#2b6cb0';
+    cx.beginPath(); cx.roundRect(bx,by,bw,3,{upperLeft:13,upperRight:13,lowerLeft:0,lowerRight:0}); cx.fill();
+    cx.restore();
+
+    cx.save(); cx.globalAlpha=a;
+    cx.textBaseline='middle'; cx.textAlign='center';
     if(p.mode==='a'){
-      label(bx+bw/2, by+18, `R = mg+P·sinθ = ${fmt(p.R,2)} N`, Cl.R,     '700 11px DM Mono', a, 'center');
-      label(bx+bw/2, by+38, `P·cosθ = ${fmt(p.Px,2)} N`,        Cl.P,     '700 11px DM Mono', a, 'center');
-      label(bx+bw/2, by+62, `μs = ${fmt(p.mu_s,4)}`,            Cl.amber, '700 19px DM Mono', a, 'center');
+      // Line 1 — R value
+      cx.font='700 11px DM Mono'; cx.fillStyle=dark?'#4fd1c5':'#2c7a7b';
+      cx.fillText(`R = mg + P·sinθ = ${fmt(p.R,2)} N`, bx+bw/2, by+22);
+      // Line 2 — P·cosθ
+      cx.font='700 11px DM Mono'; cx.fillStyle=dark?'#f6ad55':'#c05621';
+      cx.fillText(`P·cosθ = ${fmt(p.Px,2)} N`, bx+bw/2, by+42);
+      // Divider
+      cx.strokeStyle=dark?'rgba(99,179,237,0.2)':'rgba(43,108,176,0.15)'; cx.lineWidth=1;
+      cx.beginPath(); cx.moveTo(bx+16,by+56); cx.lineTo(bx+bw-16,by+56); cx.stroke();
+      // Big μs answer
+      cx.font='800 24px DM Mono'; cx.fillStyle=dark?'#f6ad55':'#c05621';
+      cx.fillText(`μs = ${fmt(p.mu_s,4)}`, bx+bw/2, by+80);
     } else {
-      const col=p.slips?Cl.rose:Cl.green;
-      label(bx+bw/2, by+16, `R = ${fmt(p.R,2)} N`, Cl.R, '700 11px DM Mono', a, 'center');
-      label(bx+bw/2, by+34, `F=${fmt(p.F_friction,2)} N  Fmax=${fmt(p.Fmax,2)} N`, Cl.P, '700 11px DM Mono', a, 'center');
-      label(bx+bw/2, by+54, p.slips?'F > Fmax  →  SLIPS':'F ≤ Fmax  →  STATIC', col, '700 13px Outfit', a, 'center');
-      label(bx+bw/2, by+76, `F = ${fmt(p.F_friction,2)} N`, col, '700 18px DM Mono', a, 'center');
+      const col=p.slips?(dark?'#fc8181':'#c53030'):(dark?'#68d391':'#276749');
+      // Line 1
+      cx.font='700 11px DM Mono'; cx.fillStyle=dark?'#4fd1c5':'#2c7a7b';
+      cx.fillText(`R = ${fmt(p.R,2)} N`, bx+bw/2, by+22);
+      // Line 2
+      cx.font='700 11px DM Mono'; cx.fillStyle=dark?'#f6ad55':'#c05621';
+      cx.fillText(`F = ${fmt(p.F_friction,2)} N   Fmax = ${fmt(p.Fmax,2)} N`, bx+bw/2, by+40);
+      // Divider
+      cx.strokeStyle=dark?'rgba(99,179,237,0.2)':'rgba(43,108,176,0.15)'; cx.lineWidth=1;
+      cx.beginPath(); cx.moveTo(bx+16,by+54); cx.lineTo(bx+bw-16,by+54); cx.stroke();
+      // Verdict
+      cx.font='700 13px Outfit'; cx.fillStyle=col;
+      cx.fillText(p.slips?'F > Fmax  →  SLIPS':'F ≤ Fmax  →  STATIC', bx+bw/2, by+72);
+      // Big F answer
+      cx.font='800 22px DM Mono'; cx.fillStyle=col;
+      cx.fillText(`F = ${fmt(p.F_friction,2)} N`, bx+bw/2, by+96);
     }
+    cx.restore();
   }
 
   /* LEGEND — top-left, fades in with block */
@@ -716,13 +776,22 @@ function drawComps(p, t){
 
   /* Equilibrium box */
   if(t5>0 && p){
-    const a=eo(t5), bw=268, bh=72, bx=14, by=12;
+    const a=eo(t5), bw=268, bh=80, bx=14, by=12;
     cx.save(); cx.globalAlpha=a;
-    cx.fillStyle=Cl.box; cx.strokeStyle=Cl.boxB; cx.lineWidth=1;
-    cx.beginPath(); cx.roundRect(bx,by,bw,bh,10); cx.fill(); cx.stroke(); cx.restore();
-    label(bx+bw/2, by+18, 'ΣFy=0 : R = mg + P·sinθ', Cl.R,     '11px DM Mono', a, 'center');
-    label(bx+bw/2, by+36, 'ΣFx=0 : F = P·cosθ',      Cl.P,     '11px DM Mono', a, 'center');
-    label(bx+bw/2, by+56, 'Equilibrium ✓',            Cl.green, '700 12px Outfit', a, 'center');
+    cx.fillStyle=dark?'#0f1e35':'#e8f1fb';
+    cx.strokeStyle=dark?'#63b3ed':'#2b6cb0';
+    cx.lineWidth=1.5;
+    cx.shadowColor=dark?'rgba(99,179,237,0.3)':'rgba(43,108,176,0.2)'; cx.shadowBlur=10;
+    cx.beginPath(); cx.roundRect(bx,by,bw,bh,12); cx.fill(); cx.stroke();
+    cx.shadowBlur=0;
+    cx.textBaseline='middle'; cx.textAlign='center';
+    cx.font='11px DM Mono'; cx.fillStyle=dark?'#4fd1c5':'#2c7a7b';
+    cx.fillText('ΣFy = 0 : R = mg + P·sinθ', bx+bw/2, by+22);
+    cx.fillStyle=dark?'#f6ad55':'#c05621';
+    cx.fillText('ΣFx = 0 : F = P·cosθ', bx+bw/2, by+42);
+    cx.font='700 13px Outfit'; cx.fillStyle=dark?'#68d391':'#276749';
+    cx.fillText('Equilibrium ✓', bx+bw/2, by+64);
+    cx.restore();
   }
 }
 
@@ -1079,6 +1148,10 @@ document.getElementById('solveBtn').addEventListener('click',()=>{
   });
   if(!validate()) return;
   const p=compute();
+  // Store Part A's μs so Part B can inherit it automatically
+  if(p.mode==='a'){
+    window.MU_FROM_A = p.mu_s;
+  }
   window.P=p;
   showResults(p);
   go(p, window.TAB||'fbd', false);
@@ -1096,6 +1169,15 @@ document.querySelectorAll('.tab').forEach(btn=>{
 document.querySelectorAll('.iw input').forEach(e=>{
   e.addEventListener('keydown',ev=>{ if(ev.key==='Enter') document.getElementById('solveBtn').click(); });
 });
+// Reset auto-fill highlight if user manually edits μs
+const muInp = document.getElementById('inp_mu');
+if(muInp){
+  muInp.addEventListener('input', ()=>{
+    muInp.style.borderColor=''; muInp.style.boxShadow='';
+    const note=document.getElementById('muNote');
+    if(note) note.style.display='none';
+  });
+}
 
 warn();
 placeholder();
