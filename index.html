@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>StaticsMaster · Block Friction Problem 6/2</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#060810;--surface:#0b0f1a;--surface2:#101626;
+  --border:rgba(99,179,237,.12);--divider:rgba(99,179,237,.06);
+  --text:#ddeeff;--muted:#7a9cbf;--faint:#3a5470;
+  --blue:#63b3ed;--blue-glow:rgba(99,179,237,.16);
+  --amber:#f6ad55;--amber-glow:rgba(246,173,85,.14);
+  --teal:#4fd1c5;--teal-glow:rgba(79,209,197,.13);
+  --green:#68d391;--green-glow:rgba(104,211,145,.13);
+  --rose:#fc8181;--rose-glow:rgba(252,129,129,.12);
+  --grid-line:rgba(99,179,237,.035);
+  --font:'Outfit',sans-serif;--mono:'DM Mono',monospace;
+  --r-lg:18px;
+}
+[data-theme="light"]{
+  --bg:#f0f5fc;--surface:#fff;--surface2:#f5f9ff;
+  --border:rgba(30,90,180,.10);--divider:rgba(30,90,180,.06);
+  --text:#0d1a2e;--muted:#4a6880;--faint:#8ba3c9;
+  --blue:#2b6cb0;--blue-glow:rgba(43,108,176,.10);
+  --amber:#c05621;--amber-glow:rgba(192,86,33,.09);
+  --teal:#2c7a7b;--teal-glow:rgba(44,122,123,.09);
+  --green:#276749;--green-glow:rgba(39,103,73,.09);
+  --rose:#c53030;--rose-glow:rgba(197,48,48,.09);
+  --grid-line:rgba(30,90,180,.035);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased}
+body{font-family:var(--font);background:var(--bg);
+  background-image:linear-gradient(var(--grid-line) 1px,transparent 1px),linear-gradient(90deg,var(--grid-line) 1px,transparent 1px);
+  background-size:36px 36px;color:var(--text);min-height:100vh}
+button,input{font-family:var(--font);color:var(--text);border:none;outline:none;background:none;cursor:pointer}
+
+.hdr{position:sticky;top:0;z-index:30;display:flex;justify-content:space-between;align-items:center;
+  padding:0 22px;height:54px;background:color-mix(in srgb,var(--surface) 82%,transparent);
+  border-bottom:1px solid var(--border);backdrop-filter:blur(18px)}
+.brand{display:flex;align-items:center;gap:11px}
+.logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--blue),var(--teal));
+  display:grid;place-items:center;font-family:var(--mono);font-size:11px;font-weight:500;color:#fff}
+.brand-name{font-size:15px;font-weight:700;letter-spacing:-.3px}
+.brand-sub{font-size:10px;color:var(--muted);font-family:var(--mono);letter-spacing:.3px;text-transform:uppercase}
+.hdr-r{display:flex;gap:8px;align-items:center}
+.pill{padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  border:1px solid var(--border);color:var(--blue);background:var(--blue-glow)}
+.pill-a{color:var(--amber);background:var(--amber-glow);border-color:rgba(246,173,85,.25)}
+.icon-btn{width:32px;height:32px;border-radius:9px;border:1px solid var(--border);
+  background:var(--surface2);display:grid;place-items:center;transition:.2s}
+.icon-btn:hover{border-color:var(--blue);background:var(--blue-glow)}
+
+.layout{display:grid;grid-template-columns:365px 1fr;min-height:calc(100vh - 54px)}
+.sidebar{padding:14px;border-right:1px solid var(--border);
+  background:color-mix(in srgb,var(--surface) 70%,transparent);
+  display:flex;flex-direction:column;gap:11px;overflow-y:auto}
+.main-col{padding:14px;display:flex;flex-direction:column;gap:13px;overflow-y:auto}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden}
+.card-pad{padding:15px}
+.card-head{display:flex;gap:10px;align-items:flex-start;margin-bottom:12px}
+.ibox{width:29px;height:29px;border-radius:8px;display:grid;place-items:center;font-size:13px;flex-shrink:0}
+.ib-b{background:var(--blue-glow);color:var(--blue);border:1px solid rgba(99,179,237,.25)}
+.ib-a{background:var(--amber-glow);color:var(--amber);border:1px solid rgba(246,173,85,.25)}
+.ib-t{background:var(--teal-glow);color:var(--teal);border:1px solid rgba(79,209,197,.25)}
+.ib-g{background:var(--green-glow);color:var(--green);border:1px solid rgba(104,211,145,.25)}
+.ct{font-size:12px;font-weight:700}.cs{font-size:10px;color:var(--muted);margin-top:1px}
+
+.slabel{font-size:9px;font-weight:700;font-family:var(--mono);color:var(--faint);letter-spacing:1px;
+  text-transform:uppercase;padding:7px 0 5px;border-bottom:1px solid var(--divider);margin:4px 0 8px}
+.field{margin-bottom:8px}
+.field label{display:flex;justify-content:space-between;align-items:center;font-size:9px;font-weight:700;
+  color:var(--muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px}
+.utag{font-size:9px;font-family:var(--mono);text-transform:none;letter-spacing:0;font-weight:400;
+  padding:1px 6px;border-radius:999px}
+.ut-b{color:var(--blue);background:var(--blue-glow);border:1px solid rgba(99,179,237,.2)}
+.ut-a{color:var(--amber);background:var(--amber-glow);border:1px solid rgba(246,173,85,.2)}
+.ut-t{color:var(--teal);background:var(--teal-glow);border:1px solid rgba(79,209,197,.2)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.iw input{width:100%;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);
+  border-radius:8px;font-size:12px;transition:.2s;color:var(--text)}
+.iw input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-glow)}
+.iw input.err{border-color:var(--rose);box-shadow:0 0 0 3px var(--rose-glow)!important}
+
+.mode-row{display:flex;background:var(--surface2);padding:3px;border-radius:9px;
+  border:1px solid var(--border);margin-bottom:10px}
+.mode-btn{flex:1;padding:5px 8px;border-radius:7px;font-size:10px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;transition:.2s;text-align:center;cursor:pointer;letter-spacing:.3px}
+.mode-btn.active{background:var(--surface);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.25)}
+
+.solve-btn{width:100%;padding:10px;border-radius:11px;font-size:13px;font-weight:700;color:#fff;
+  background:linear-gradient(135deg,var(--blue),var(--teal),var(--green));
+  box-shadow:0 4px 18px rgba(99,179,237,.2);transition:.25s;position:relative;overflow:hidden;margin-top:9px}
+.solve-btn:hover{transform:translateY(-2px);box-shadow:0 8px 26px rgba(99,179,237,.3)}
+
+.errmsg{display:none;font-size:11px;color:var(--rose);background:var(--rose-glow);
+  border:1px solid rgba(252,129,129,.25);padding:8px 11px;border-radius:9px;margin-top:8px;line-height:1.6}
+.warn-widget{display:none;margin-top:9px;border-radius:11px;
+  border:1.5px solid rgba(246,173,85,.35);background:rgba(246,173,85,.06);overflow:hidden}
+.warn-widget.on{display:flex;align-items:stretch}
+.warn-bar{width:4px;background:linear-gradient(180deg,var(--amber),var(--rose));flex-shrink:0}
+.warn-body{padding:9px 11px}
+.warn-title{font-size:10px;font-weight:700;font-family:var(--mono);color:var(--amber);
+  letter-spacing:.4px;text-transform:uppercase;margin-bottom:3px}
+.warn-text{font-size:11px;color:var(--amber);line-height:1.7}
+
+.rg{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.chip{padding:9px;border-radius:11px;background:var(--surface2);border:1px solid var(--border);
+  text-align:center;position:relative;overflow:hidden}
+.chip-acc{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue),var(--teal))}
+.ck{font-size:9px;font-weight:700;font-family:var(--mono);letter-spacing:.4px;
+  text-transform:uppercase;color:var(--faint);margin-bottom:4px}
+.cv{font-family:var(--mono);font-size:14px;font-weight:500;word-break:break-all}
+.cu{font-size:9px;color:var(--muted);margin-top:2px}
+.chip.big{grid-column:1/-1;background:linear-gradient(135deg,rgba(99,179,237,.06),rgba(79,209,197,.06));
+  border-color:rgba(99,179,237,.3)}
+.chip.big .cv{font-size:19px;color:var(--blue)}
+.chip.big .chip-acc{background:linear-gradient(90deg,var(--blue),var(--teal),var(--green))}
+.chip.slip .cv{color:var(--rose)} .chip.stat .cv{color:var(--green)}
+.rlbl{font-size:9px;font-weight:700;font-family:var(--mono);letter-spacing:.8px;text-transform:uppercase;
+  color:var(--muted);padding:5px 0 4px;border-bottom:1px solid var(--divider);margin:8px 0 6px}
+
+.fbd-hdr{display:flex;justify-content:space-between;align-items:center;
+  padding:11px 15px;border-bottom:1px solid var(--border)}
+.tabs{display:flex;gap:3px;background:var(--surface2);padding:3px;border-radius:9px}
+.tab{padding:5px 11px;border-radius:7px;font-size:10px;font-weight:700;color:var(--muted);
+  transition:.2s;text-transform:uppercase;letter-spacing:.3px}
+.tab.active{background:var(--surface);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.canvas-zone{position:relative;
+  background:radial-gradient(ellipse at 25% 35%,color-mix(in srgb,var(--blue-glow) 55%,transparent),transparent 52%),
+  radial-gradient(ellipse at 75% 70%,color-mix(in srgb,var(--teal-glow) 40%,transparent),transparent 48%),var(--bg);
+  display:flex;justify-content:center;align-items:center;padding:18px}
+#cvs{border-radius:13px;width:100%;max-width:940px;height:auto;display:block;
+  transition:opacity .3s,transform .4s cubic-bezier(.16,1,.3,1);box-shadow:0 8px 40px rgba(0,0,0,.6)}
+#cvs.sw{opacity:.05;transform:scale(.97)}
+.badge{position:absolute;right:24px;bottom:20px;display:none;align-items:center;gap:6px;
+  padding:5px 10px;border-radius:999px;font-size:10px;font-weight:700;border:1px solid var(--border);
+  background:color-mix(in srgb,var(--surface) 82%,transparent);backdrop-filter:blur(8px)}
+.badge.on{display:flex}
+.dot{width:6px;height:6px;border-radius:999px;background:var(--green);animation:blink 1.2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+.steps{display:flex;flex-direction:column}
+.step{display:flex;gap:11px;padding:10px 0;border-bottom:1px solid var(--divider)}
+.step:last-child{border:none}
+.snum{width:23px;height:23px;border-radius:999px;flex-shrink:0;display:grid;place-items:center;
+  font:700 9px var(--mono);background:var(--blue);border:1px solid var(--blue);color:#060810}
+.stitle{font-size:12px;font-weight:700;margin-bottom:2px}
+.sdesc{font-size:11px;color:var(--muted);line-height:1.6}
+.math{margin-top:5px;padding:6px 10px;border-radius:7px;background:var(--surface2);
+  border-left:3px solid var(--blue);font:11px var(--mono);color:var(--blue);line-height:1.9}
+.eqbox{padding:13px 15px;border-radius:11px;
+  background:linear-gradient(135deg,rgba(99,179,237,.05),rgba(79,209,197,.05));
+  border:1px solid rgba(99,179,237,.2);font:13px/1.9 var(--mono);word-break:break-all}
+.notice{padding:12px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);
+  font-size:11px;color:var(--muted);line-height:1.7}
+.help{font-size:10px;color:var(--muted);line-height:1.7;background:var(--surface2);
+  border:1px solid var(--border);padding:8px 10px;border-radius:8px;margin-top:7px}
+.help b{color:var(--blue)}
+.cbanner{padding:8px 11px;border-radius:8px;font-size:11px;line-height:1.6;margin-bottom:9px}
+.cb-info{background:var(--blue-glow);border:1px solid rgba(99,179,237,.3);color:var(--blue)}
+.cb-green{background:var(--green-glow);border:1px solid rgba(104,211,145,.3);color:var(--green)}
+.cb-rose{background:var(--rose-glow);border:1px solid rgba(252,129,129,.3);color:var(--rose)}
+
+@media(max-width:960px){.layout{grid-template-columns:1fr}
+  .sidebar{border-right:none;border-bottom:1px solid var(--border)}}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="brand">
+    <div class="logo">SM</div>
+    <div>
+      <div class="brand-name">StaticsMaster</div>
+      <div class="brand-sub">FRICTION BLOCK · PROBLEM 6/2</div>
+    </div>
+  </div>
+  <div class="hdr-r">
+    <div class="pill">Statics</div>
+    <div class="pill pill-a" id="modeTag">FIND μs</div>
+    <button class="icon-btn" id="themeBtn" title="Toggle theme">
+      <svg id="themeIco" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"></svg>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+<aside class="sidebar">
+  <div class="card card-pad">
+    <div class="card-head">
+      <div class="ibox ib-b">⚙️</div>
+      <div>
+        <div class="ct">Inputs — Problem 6/2</div>
+        <div class="cs">Block on surface · P applied via rod at angle θ below horizontal</div>
+      </div>
+    </div>
+
+    <div class="slabel">Solve Mode</div>
+    <div class="mode-row">
+      <div class="mode-btn active" id="modeA" onclick="setMode('a')">Part (a) — Find μs</div>
+      <div class="mode-btn" id="modeB" onclick="setMode('b')">Part (b) — Find F</div>
+    </div>
+
+    <div class="slabel">Block &amp; Gravity</div>
+    <div class="field-row">
+      <div class="field">
+        <label>Mass m <span class="utag ut-b">kg</span></label>
+        <div class="iw"><input id="inp_m" value="50" placeholder="50"></div>
+      </div>
+      <div class="field">
+        <label>Gravity g <span class="utag ut-t">m/s²</span></label>
+        <div class="iw"><input id="inp_g" value="9.81" placeholder="9.81"></div>
+      </div>
+    </div>
+
+    <div class="slabel">Applied Force</div>
+    <div class="field-row">
+      <div class="field">
+        <label>Force P <span class="utag ut-b">N</span></label>
+        <div class="iw"><input id="inp_P" value="200" placeholder="200"></div>
+      </div>
+      <div class="field">
+        <label>Angle θ <span class="utag ut-a">deg</span></label>
+        <div class="iw"><input id="inp_theta" value="30" placeholder="30"></div>
+      </div>
+    </div>
+    <div class="help">
+      <b>θ is measured below the horizontal</b> — the rod slopes downward from the P label into the block's left face.
+      This means P·sinθ pushes the block <b>into the ground</b> (increases R), while P·cosθ pushes it <b>rightward</b> (drives sliding).<br>
+      Valid range: 0° ≤ θ ≤ 90°. At θ = 90° the rod is vertical — no horizontal force, no friction needed.
+    </div>
+
+    <div id="muRow" class="field" style="display:none">
+      <label>μs (from part a) <span class="utag ut-t">—</span></label>
+      <div class="iw"><input id="inp_mu" value="0.293" placeholder="0.293"></div>
+    </div>
+
+    <button class="solve-btn" id="solveBtn">⚡ Solve &amp; Animate</button>
+
+    <div class="warn-widget" id="warnW">
+      <div class="warn-bar"></div>
+      <div class="warn-body">
+        <div class="warn-title">⚠ Notice</div>
+        <div class="warn-text" id="warnTxt"></div>
+      </div>
+    </div>
+    <div class="errmsg" id="errMsg"></div>
+  </div>
+
+  <div class="card card-pad" id="resCard" style="display:none">
+    <div class="card-head">
+      <div class="ibox ib-g">✓</div>
+      <div><div class="ct">Results</div><div class="cs" id="resSub">—</div></div>
+    </div>
+    <div id="resBanner" style="display:none"></div>
+    <div class="rlbl">Forces &amp; Reactions</div>
+    <div class="rg" id="chipsTop"></div>
+    <div class="rlbl" id="rlbl2">Answer</div>
+    <div class="rg" id="chipsBot"></div>
+  </div>
+</aside>
+
+<main class="main-col">
+  <section class="card">
+    <div class="fbd-hdr">
+      <div>
+        <div class="ct">Free Body Diagram — Problem 6/2</div>
+        <div class="cs">Animated · All forces act on the block · ΣFx = 0, ΣFy = 0</div>
+      </div>
+      <div class="tabs">
+        <button class="tab active" data-tab="fbd">Full FBD</button>
+        <button class="tab" data-tab="comps">Components</button>
+        <button class="tab" data-tab="check">Slip Check</button>
+      </div>
+    </div>
+    <div class="canvas-zone" style="min-height:520px">
+      <canvas id="cvs" width="920" height="500"></canvas>
+      <div class="badge" id="badge"><span class="dot"></span><span>Drawing…</span></div>
+    </div>
+  </section>
+
+  <section class="card card-pad">
+    <div class="card-head">
+      <div class="ibox ib-a">📝</div>
+      <div><div class="ct">Step-by-Step Solution</div>
+        <div class="cs">ΣFx = 0 and ΣFy = 0 — scalar equilibrium</div></div>
+    </div>
+    <div id="stepsWrap" class="notice">Enter values and click <strong>⚡ Solve &amp; Animate</strong></div>
+  </section>
+
+  <section class="card card-pad">
+    <div class="card-head">
+      <div class="ibox ib-t">∑</div>
+      <div><div class="ct">Equilibrium Equations</div>
+        <div class="cs">P·sinθ acts downward → R = mg + P·sinθ</div></div>
+    </div>
+    <div class="eqbox" id="eqBox">ΣFy = 0 : R = mg + P·sinθ &nbsp;|&nbsp; ΣFx = 0 : F = P·cosθ &nbsp;|&nbsp; At slip: μs = P·cosθ / R</div>
+  </section>
+</main>
+</div>
+
+<script>
+/* ─────────────────────────────────────────
+   PHYSICS SUMMARY
+   Rod slopes DOWN-RIGHT at angle θ below horizontal,
+   tip presses into the LEFT FACE of the block (mid-height).
+
+   P·cosθ  →  rightward  → drives block to slide right
+   P·sinθ  →  downward   → adds to weight, increases R
+
+   ΣFy=0:  R = mg + P·sinθ
+   ΣFx=0:  F = P·cosθ         (friction opposes rightward motion)
+
+   Part (a) θ=30°:
+     R = 490.5 + 100 = 590.5 N
+     μs = 173.2 / 590.5 = 0.293  ✓
+
+   Part (b) θ=45°:
+     R = 490.5 + 141.4 = 631.9 N
+     F = 141.4 N,  Fmax = 0.293×631.9 = 185.1 N
+     141.4 < 185.1 → STATIC  ✓
+───────────────────────────────────────── */
+
+/* ── THEME ── */
+let dark = true;
+const root = document.documentElement;
+function setIco(){
+  document.getElementById('themeIco').innerHTML = dark
+    ? '<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>'
+    : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+}
+setIco();
+document.getElementById('themeBtn').addEventListener('click', () => {
+  dark = !dark; root.setAttribute('data-theme', dark ? 'dark' : 'light'); setIco();
+  if(window.P) go(window.P, window.TAB||'fbd', true); else placeholder();
+});
+
+/* ── MODE ── */
+let MODE = 'a';
+function setMode(m){
+  MODE = m;
+  document.getElementById('modeA').classList.toggle('active', m==='a');
+  document.getElementById('modeB').classList.toggle('active', m==='b');
+  document.getElementById('muRow').style.display = m==='b' ? 'block' : 'none';
+  document.getElementById('resCard').style.display = 'none';
+  document.getElementById('errMsg').style.display = 'none';
+  warn();
+}
+
+/* ── COLORS ── */
+function C(){
+  return dark ? {
+    cvs:'#0b0f1a', text:'#ddeeff', muted:'#7a9cbf', faint:'#2a3f58',
+    blk:'rgba(20,38,72,0.9)', blkStr:'#63b3ed',
+    gnd:'#0a1520', gndL:'#1a3050', hatch:'#111e30',
+    P:'#f6ad55', R:'#4fd1c5', W:'#b794f4', F:'#fc8181',
+    grid:'rgba(99,179,237,.03)',
+    box:'rgba(9,13,22,.95)', boxB:'rgba(99,179,237,.3)',
+    tbg:'rgba(9,13,22,.88)',
+    green:'#68d391', rose:'#fc8181', amber:'#f6ad55'
+  } : {
+    cvs:'#ffffff', text:'#0d1a2e', muted:'#4a6880', faint:'#c0d4ec',
+    blk:'rgba(186,220,255,0.82)', blkStr:'#2b6cb0',
+    gnd:'#dde8f5', gndL:'#94a3b8', hatch:'#c8d8ec',
+    P:'#c05621', R:'#2c7a7b', W:'#6b46c1', F:'#c53030',
+    grid:'rgba(30,90,180,.03)',
+    box:'rgba(255,255,255,.96)', boxB:'rgba(30,90,180,.28)',
+    tbg:'rgba(255,255,255,.9)',
+    green:'#276749', rose:'#c53030', amber:'#c05621'
+  };
+}
+
+/* ── UTILS ── */
+const cv = document.getElementById('cvs');
+const cx = cv.getContext('2d');
+let raf = null;
+window.TAB = 'fbd'; window.P = null;
+
+function fmt(v,d=3){ return (v===null||!isFinite(v)) ? '?' : Number(v).toFixed(d); }
+function eo(x){ return 1 - Math.pow(1-Math.max(0,Math.min(1,x)), 4); }
+function eio(x){ x=Math.max(0,Math.min(1,x)); return x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2; }
+function pp(t,a,b){ if(t<=a)return 0; if(t>=b)return 1; return eo((t-a)/(b-a)); }
+function g(id){ return parseFloat((document.getElementById(id)||{value:''}).value.trim()); }
+
+/* ── CANVAS PRIMITIVES ── */
+function bg(){
+  const Cl=C(); cx.fillStyle=Cl.cvs; cx.fillRect(0,0,cv.width,cv.height);
+  cx.strokeStyle=Cl.grid; cx.lineWidth=1;
+  for(let x=0;x<cv.width;x+=32){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,cv.height);cx.stroke()}
+  for(let y=0;y<cv.height;y+=32){cx.beginPath();cx.moveTo(0,y);cx.lineTo(cv.width,y);cx.stroke()}
+}
+
+/* arrow from (x1,y1) to (x2,y2), animates tip-first */
+function arrow(x1,y1,x2,y2,col,t,lbl,lx,ly,lw=3.2){
+  if(t<=0)return;
+  const p=eo(t), tx=x1+(x2-x1)*p, ty=y1+(y2-y1)*p;
+  cx.save(); cx.strokeStyle=col; cx.fillStyle=col;
+  cx.lineWidth=lw; cx.lineCap='round';
+  cx.shadowColor=col; cx.shadowBlur=12;
+  cx.beginPath(); cx.moveTo(x1,y1); cx.lineTo(tx,ty); cx.stroke();
+  if(t>0.55){
+    const k=(t-0.55)/0.45, ang=Math.atan2(y2-y1,x2-x1), hs=14;
+    cx.globalAlpha=k;
+    cx.beginPath(); cx.moveTo(tx,ty);
+    cx.lineTo(tx-hs*Math.cos(ang-Math.PI/7), ty-hs*Math.sin(ang-Math.PI/7));
+    cx.lineTo(tx-hs*Math.cos(ang+Math.PI/7), ty-hs*Math.sin(ang+Math.PI/7));
+    cx.closePath(); cx.fill();
+  }
+  if(lbl && t>0.78){
+    cx.globalAlpha=(t-0.78)/0.22; cx.shadowBlur=0;
+    label(lx??x2+8, ly??y2-8, lbl, col, 'bold 12px Outfit');
+  }
+  cx.restore();
+}
+
+/* dashed line */
+function dsh(x1,y1,x2,y2,col,t=1,da=[7,4],w=1.5){
+  if(t<=0)return; const p=eo(t);
+  cx.save(); cx.strokeStyle=col; cx.lineWidth=w;
+  cx.setLineDash(da); cx.lineCap='round';
+  cx.beginPath(); cx.moveTo(x1,y1); cx.lineTo(x1+(x2-x1)*p, y1+(y2-y1)*p);
+  cx.stroke(); cx.restore();
+}
+
+/* text with background pill */
+function label(x,y,s,col,font='12px Outfit',a=1,align='left'){
+  if(a<=0)return; const Cl=C();
+  cx.save(); cx.globalAlpha=Math.min(1,a);
+  cx.font=font; cx.textAlign=align; cx.textBaseline='middle';
+  const m=cx.measureText(s), w=m.width, h=parseInt(font)*1.15;
+  const px=6, py=3; let bx=x, by=y-h/2;
+  if(align==='center') bx=x-w/2;
+  if(align==='right')  bx=x-w;
+  cx.fillStyle=Cl.tbg;
+  cx.beginPath(); cx.roundRect(bx-px,by-py,w+px*2,h+py*2,5); cx.fill();
+  cx.fillStyle=col; cx.fillText(s,x,y);
+  cx.restore();
+}
+
+/* ─────────────────────────────────────────
+   SCENE COORDINATES
+   Canvas: 920×500
+   Block: centred horizontally, sits on ground line.
+   Ground line at y=340 (leaving 160px below for labels).
+   Block: 180×110, so top of block at y=230, left at x=370.
+   This leaves plenty of room on the left for the rod+P arrow,
+   and room above/below for W, R arrows.
+
+   Force anchor points (where each force arrow touches the block):
+   - P:  left face, mid-height      → (Bx,      By+BH/2)
+   - W:  bottom face, centre        → (Bx+BW/2, By+BH)
+   - R:  bottom face, centre        → (Bx+BW/2, gndY)    (draws upward)
+   - F:  bottom face, near left     → (Bx+30,   gndY)    (draws leftward)
+
+   Rod tail (where the P label/force tail is) = P_anchor + rodLen in direction away from block:
+     direction away = (-cosθ, -sinθ)  i.e. upper-left
+   So tailX = Bx - rodLen·cosθ
+      tailY = (By+BH/2) - rodLen·sinθ
+
+   Arrow drawn FROM tail TO P_anchor  (force pushes INTO block).
+───────────────────────────────────────── */
+function S(p){
+  const W=cv.width, H=cv.height;
+  const BW=180, BH=110;
+  const BX = W/2 - BW/2 + 30;  // block left edge — slightly right of centre to give rod room
+  const BY = H*0.44 - BH;       // block top edge
+  const GY = BY + BH;           // ground Y (= bottom of block = top of ground zone)
+
+  const theta = p ? p.theta : 30;
+  const tR    = theta * Math.PI / 180;
+
+  // Rod length scales with P (140px ≈ 200N, min 80, max 200)
+  const rodLen = p ? Math.max(80, Math.min(200, 140*p.P/200)) : 140;
+
+  // P force anchor = left face, mid-height
+  const pAX = BX;
+  const pAY = BY + BH/2;
+
+  // Rod tail = pAnchor moved upper-left along rod direction
+  const tailX = pAX - rodLen * Math.cos(tR);
+  const tailY = pAY - rodLen * Math.sin(tR);
+
+  // Normal reaction arrow length scales with R
+  const baseR = 590.5; // reference R for θ=30°
+  const R = p ? p.R : baseR;
+  const rLen = Math.max(70, Math.min(160, 110 * R/baseR));
+
+  // Weight arrow length (fixed)
+  const wLen = 90;
+
+  // Friction arrow length scales with F
+  const baseF = 173.2;
+  const fVal = p ? p.F_friction : baseF;
+  const fLen = Math.max(50, Math.min(140, 110 * fVal/baseF));
+
+  return { W, H, BW, BH, BX, BY, GY,
+    bCx: BX+BW/2, bCy: BY+BH/2,
+    pAX, pAY, tailX, tailY, tR, theta,
+    rLen, wLen, fLen };
+}
+
+/* ─────────────────────────────────────────
+   DRAW FBD
+   Order of animation phases:
+   t0: ground & block appear
+   t1: weight W arrow (downward from block bottom-centre, below ground)
+   t2: normal R arrow (upward from block bottom-centre, above ground)
+   t3: applied P with rod (leftward from left face, sweeps in from tail)
+   t4: friction F (leftward from bottom-left of block)
+   t5: summary box + slip indicator
+───────────────────────────────────────── */
+function drawFBD(p, t){
+  bg(); const Cl=C(); const s=S(p);
+  const t0=pp(t,0,.12), t1=pp(t,.10,.28), t2=pp(t,.24,.44),
+        t3=pp(t,.40,.62), t4=pp(t,.58,.78), t5=pp(t,.75,1.0);
+
+  /* GROUND */
+  cx.save(); cx.globalAlpha=eio(t0);
+  cx.fillStyle=Cl.gnd; cx.fillRect(0, s.GY, s.W, s.H-s.GY);
+  cx.strokeStyle=Cl.gndL; cx.lineWidth=2.5;
+  cx.beginPath(); cx.moveTo(0,s.GY); cx.lineTo(s.W,s.GY); cx.stroke();
+  // hatching below ground
+  cx.strokeStyle=Cl.hatch; cx.lineWidth=1;
+  for(let x=-s.H; x<s.W+s.H; x+=18){
+    cx.beginPath(); cx.moveTo(x,s.GY); cx.lineTo(x+s.H*0.55, s.GY+s.H*0.55); cx.stroke();
+  }
+  cx.restore();
+
+  // μs label centred below block on ground
+  if(t0>0.5) label(s.bCx, s.GY+28, 'μs', Cl.muted, 'italic bold 16px Outfit', (t0-0.5)/0.5, 'center');
+
+  /* BLOCK */
+  cx.save(); cx.globalAlpha=eio(t0);
+  cx.fillStyle=Cl.blk; cx.strokeStyle=Cl.blkStr; cx.lineWidth=2.5;
+  cx.shadowColor=Cl.blkStr; cx.shadowBlur=16;
+  cx.beginPath(); cx.roundRect(s.BX, s.BY, s.BW, s.BH, 5); cx.fill(); cx.stroke();
+  cx.restore();
+  // Mass label inside block
+  if(t0>0.4) label(s.bCx, s.bCy, `${p?fmt(p.m,0):50} kg`, Cl.blkStr, 'bold 18px Outfit', Math.min(1,(t0-0.4)/0.6), 'center');
+
+  /* WEIGHT W — downward from block bottom-centre, arrow goes below into ground zone */
+  // tail at block bottom-centre, tip points down
+  {
+    const wx = s.bCx;
+    const wy0 = s.BY + s.BH;   // start at block's bottom face
+    const wy1 = s.GY + s.wLen; // tip below ground line
+    arrow(wx, wy0, wx, wy1, Cl.W, t1,
+      `W = ${p?fmt(p.W,1):490.5} N`, wx+8, s.GY + s.wLen*0.5);
+  }
+
+  /* NORMAL R — upward from block bottom-centre, arrow goes up from ground line */
+  {
+    const rx = s.bCx + 30;       // offset slightly right of W so they don't overlap
+    const ry0 = s.GY;             // starts at ground (acts on block base)
+    const ry1 = s.GY - s.rLen;    // tip above ground (upward)
+    arrow(rx, ry0, rx, ry1, Cl.R, t2,
+      `R = ${p?fmt(p.R,1):590.5} N`, rx+8, s.GY - s.rLen*0.55);
+  }
+
+  /* APPLIED FORCE P — rod from tail (upper-left) → left face mid-height of block */
+  if(t3>0){
+    // Main arrow: tail → anchor on block left face (force pushes INTO block, rightward+downward)
+    arrow(s.tailX, s.tailY, s.pAX, s.pAY, Cl.P, t3,
+      `P = ${p?fmt(p.P,0):200} N`,
+      s.tailX - 70,       // label to the left of the tail
+      s.tailY - 10, 3.8);
+
+    // Rod body visual (semi-transparent thick line same path, drawn before arrow)
+    cx.save(); cx.globalAlpha=eio(t3)*0.28;
+    cx.strokeStyle=Cl.P; cx.lineWidth=9; cx.lineCap='round';
+    cx.beginPath(); cx.moveTo(s.tailX,s.tailY); cx.lineTo(s.pAX,s.pAY); cx.stroke();
+    cx.restore();
+
+    // θ arc and label at the rod tail point
+    if(t3>0.45){
+      const k = (t3-0.45)/0.55;
+      const arcR = 40;
+
+      // Dashed horizontal reference line at tail, pointing right (same direction as rod horizontal component)
+      dsh(s.tailX, s.tailY, s.tailX+58, s.tailY, Cl.muted, k, [4,3], 1.5);
+
+      // Arc from 0 (rightward horizontal) clockwise to rodAngle (downward-right)
+      // rodAngle = atan2(pAY - tailY, pAX - tailX)  → positive (below horiz) in canvas coords ✓
+      const rodAng = Math.atan2(s.pAY - s.tailY, s.pAX - s.tailX);
+      cx.save(); cx.globalAlpha=k;
+      cx.strokeStyle=Cl.P; cx.lineWidth=2;
+      cx.beginPath(); cx.arc(s.tailX, s.tailY, arcR, 0, rodAng, false); cx.stroke();
+      const mid = rodAng / 2;
+      label(s.tailX + arcR*Math.cos(mid) + 6,
+            s.tailY + arcR*Math.sin(mid),
+            `θ=${p?fmt(p.theta,0):30}°`, Cl.P, 'bold 11px DM Mono', k);
+      cx.restore();
+    }
+  }
+
+  /* FRICTION F — leftward from bottom-left of block face */
+  if(t4>0 && p){
+    // Acts on the block's bottom face, drawn at the left side of the block
+    const fx0 = s.BX + 24;          // start: left portion of bottom face
+    const fy  = s.GY - 1;            // just at ground level (acts on base)
+    const fx1 = fx0 - s.fLen;        // tip: leftward
+    arrow(fx0, fy, fx1, fy, Cl.F, t4,
+      `F = ${fmt(p.F_friction,2)} N`, fx1-8, fy-16, 3.2);
+
+    // Slip / static verdict
+    if(t4>0.7 && p.mode==='b'){
+      const k = (t4-0.7)/0.3;
+      if(p.slips){
+        // Red dashed slip line along base
+        cx.save(); cx.globalAlpha=k*0.8;
+        cx.strokeStyle=Cl.rose; cx.lineWidth=2; cx.setLineDash([6,4]);
+        cx.beginPath(); cx.moveTo(s.BX-2,s.GY); cx.lineTo(s.BX+s.BW+2,s.GY); cx.stroke();
+        cx.setLineDash([]); cx.restore();
+        label(s.bCx, s.GY+50, '⚡ SLIPS', Cl.rose, 'bold 14px Outfit', k, 'center');
+      } else {
+        label(s.bCx, s.GY+50, '✓ STATIC', Cl.green, 'bold 14px Outfit', k, 'center');
+      }
+    }
+  }
+
+  /* SUMMARY BOX — top-right corner */
+  if(t5>0 && p){
+    const a = eo(t5);
+    const bw=258, bh=p.mode==='a'?82:98;
+    const bx=s.W-bw-14, by=12;
+    cx.save(); cx.globalAlpha=a;
+    cx.fillStyle=Cl.box; cx.strokeStyle=Cl.boxB; cx.lineWidth=1.5;
+    cx.beginPath(); cx.roundRect(bx,by,bw,bh,12); cx.fill(); cx.stroke(); cx.restore();
+    if(p.mode==='a'){
+      label(bx+bw/2, by+18, `R = mg+P·sinθ = ${fmt(p.R,2)} N`, Cl.R,     '700 11px DM Mono', a, 'center');
+      label(bx+bw/2, by+38, `P·cosθ = ${fmt(p.Px,2)} N`,        Cl.P,     '700 11px DM Mono', a, 'center');
+      label(bx+bw/2, by+62, `μs = ${fmt(p.mu_s,4)}`,            Cl.amber, '700 19px DM Mono', a, 'center');
+    } else {
+      const col=p.slips?Cl.rose:Cl.green;
+      label(bx+bw/2, by+16, `R = ${fmt(p.R,2)} N`, Cl.R, '700 11px DM Mono', a, 'center');
+      label(bx+bw/2, by+34, `F=${fmt(p.F_friction,2)} N  Fmax=${fmt(p.Fmax,2)} N`, Cl.P, '700 11px DM Mono', a, 'center');
+      label(bx+bw/2, by+54, p.slips?'F > Fmax  →  SLIPS':'F ≤ Fmax  →  STATIC', col, '700 13px Outfit', a, 'center');
+      label(bx+bw/2, by+76, `F = ${fmt(p.F_friction,2)} N`, col, '700 18px DM Mono', a, 'center');
+    }
+  }
+
+  /* LEGEND — top-left, fades in with block */
+  const leg=[
+    {c:Cl.P, t:`P — Applied force (rod at θ below horizontal)`},
+    {c:Cl.R, t:'R — Normal reaction (upward from ground)'},
+    {c:Cl.W, t:'W — Weight mg (downward)'},
+    {c:Cl.F, t:'F — Friction force (opposes rightward slide)'},
+  ];
+  cx.save(); cx.globalAlpha=eio(t0);
+  leg.forEach((it,i)=>{
+    cx.fillStyle=it.c; cx.fillRect(14, 16+i*20, 10, 3);
+    cx.fillStyle=Cl.text; cx.font='10px Outfit'; cx.textBaseline='middle';
+    cx.fillText(it.t, 28, 18+i*20);
+  });
+  cx.restore();
+}
+
+/* ─────────────────────────────────────────
+   DRAW COMPONENTS TAB
+   Shows the block schematically + P decomposed into
+   horizontal (P·cosθ) and vertical (P·sinθ) components,
+   alongside W and R, all acting on/from the block.
+───────────────────────────────────────── */
+function drawComps(p, t){
+  bg(); const Cl=C(); const s=S(p);
+  const t0=pp(t,0,.12), t1=pp(t,.10,.30), t2=pp(t,.26,.48),
+        t3=pp(t,.44,.66), t4=pp(t,.64,.86), t5=pp(t,.84,1.0);
+
+  /* Ground + block (ghost) */
+  cx.save(); cx.globalAlpha=eio(t0)*0.5;
+  cx.fillStyle=Cl.gnd; cx.fillRect(0,s.GY,s.W,s.H-s.GY);
+  cx.strokeStyle=Cl.gndL; cx.lineWidth=2;
+  cx.beginPath(); cx.moveTo(0,s.GY); cx.lineTo(s.W,s.GY); cx.stroke();
+  cx.fillStyle=Cl.blk; cx.strokeStyle=Cl.blkStr; cx.lineWidth=2;
+  cx.beginPath(); cx.roundRect(s.BX,s.BY,s.BW,s.BH,5); cx.fill(); cx.stroke();
+  cx.restore();
+  if(t0>0.3) label(s.bCx, s.bCy, `${p?fmt(p.m,0):50} kg`, Cl.blkStr, 'bold 16px Outfit', Math.min(1,(t0-0.3)/0.7), 'center');
+
+  /* W — downward from block bottom */
+  const wScale = p ? Math.max(60,Math.min(110,90*p.W/490.5)) : 90;
+  arrow(s.bCx-20, s.BY+s.BH, s.bCx-20, s.GY+wScale, Cl.W, t1,
+    `W = ${p?fmt(p.W,1):490.5} N`, s.bCx-20+8, s.GY+wScale*0.5);
+
+  /* R — upward from block base */
+  const rScale = p ? Math.max(60,Math.min(130,90*p.R/590.5)) : 90;
+  arrow(s.bCx+20, s.GY, s.bCx+20, s.GY-rScale, Cl.R, t2,
+    `R = ${p?fmt(p.R,1):590.5} N`, s.bCx+20+8, s.GY-rScale*0.6);
+
+  /* P·cosθ — rightward from left face, acts horizontally INTO block  */
+  const pxScale = p ? Math.max(40,Math.min(130,90*p.Px/173.2)) : 90;
+  const pxAnchorX = s.BX;           // left face
+  const pxAnchorY = s.pAY;          // mid-height
+  arrow(pxAnchorX - pxScale, pxAnchorY,
+        pxAnchorX,             pxAnchorY, Cl.P, t3,
+    `P·cosθ = ${p?fmt(p.Px,2):173.2} N`,
+    pxAnchorX - pxScale - 10, pxAnchorY - 16);
+
+  /* P·sinθ — downward from top face of block at left side, acts vertically DOWN */
+  const pyScale = p ? Math.max(30,Math.min(100,90*p.Py/100)) : 60;
+  const pyAnchorX = s.BX + 40;      // near left of top face
+  const pyAnchorY = s.BY;           // top face
+  arrow(pyAnchorX, pyAnchorY - pyScale,
+        pyAnchorX, pyAnchorY, Cl.P, t3,
+    `P·sinθ = ${p?fmt(p.Py,2):100.0} N`,
+    pyAnchorX + 8, pyAnchorY - pyScale*0.5);
+
+  /* F — leftward from bottom face */
+  const fScale2 = p ? Math.max(35,Math.min(120,90*p.F_friction/173.2)) : 90;
+  arrow(s.BX+28, s.GY, s.BX+28 - fScale2, s.GY, Cl.F, t4,
+    `F = ${p?fmt(p.F_friction,2):173.2} N`,
+    s.BX+28 - fScale2 - 8, s.GY-16);
+
+  /* Equilibrium box */
+  if(t5>0 && p){
+    const a=eo(t5), bw=268, bh=72, bx=14, by=12;
+    cx.save(); cx.globalAlpha=a;
+    cx.fillStyle=Cl.box; cx.strokeStyle=Cl.boxB; cx.lineWidth=1;
+    cx.beginPath(); cx.roundRect(bx,by,bw,bh,10); cx.fill(); cx.stroke(); cx.restore();
+    label(bx+bw/2, by+18, 'ΣFy=0 : R = mg + P·sinθ', Cl.R,     '11px DM Mono', a, 'center');
+    label(bx+bw/2, by+36, 'ΣFx=0 : F = P·cosθ',      Cl.P,     '11px DM Mono', a, 'center');
+    label(bx+bw/2, by+56, 'Equilibrium ✓',            Cl.green, '700 12px Outfit', a, 'center');
+  }
+}
+
+/* ─────────────────────────────────────────
+   DRAW SLIP CHECK TAB
+   Bar chart: Required F vs Maximum Fmax = μs·R
+───────────────────────────────────────── */
+function drawCheck(p, t){
+  bg(); const Cl=C();
+  const t0=pp(t,0,.12), t1=pp(t,.10,.34), t2=pp(t,.32,.58),
+        t3=pp(t,.56,.78), t4=pp(t,.76,1.0);
+
+  if(!p){
+    label(cv.width/2, cv.height/2, 'Solve first to see the slip check', Cl.muted, '700 17px Outfit', 0.7, 'center');
+    return;
+  }
+
+  const BX=80, BY=60, BW=cv.width-160, BH=cv.height-160;
+  const maxV = Math.max(p.Fmax, p.F_friction) * 1.4 || 1;
+  const sc = BH / maxV;
+  const barW = Math.min(160, (BW-80)/2);
+
+  /* Axes */
+  cx.save(); cx.globalAlpha=eio(t0);
+  cx.strokeStyle=Cl.muted; cx.lineWidth=1.5;
+  cx.beginPath(); cx.moveTo(BX,BY); cx.lineTo(BX,BY+BH); cx.lineTo(BX+BW,BY+BH); cx.stroke();
+  for(let v=0; v<=Math.ceil(maxV/50)*50; v+=50){
+    const yt=BY+BH-v*sc; if(yt<BY)break;
+    cx.beginPath(); cx.moveTo(BX-5,yt); cx.lineTo(BX+BW,yt);
+    cx.globalAlpha=0.07; cx.stroke(); cx.globalAlpha=eio(t0)*0.8;
+    label(BX-8, yt, `${v}`, Cl.muted, '10px DM Mono', eio(t0), 'right');
+  }
+  label(BX-22, BY+BH/2, 'N', Cl.muted, '11px Outfit', eio(t0), 'center');
+  cx.restore();
+
+  /* Bar 1 — Required friction F */
+  const b1x = BX + 70, b1h = p.F_friction*sc;
+  const b1y = BY+BH - b1h*eo(t1);
+  cx.save(); cx.globalAlpha=eo(t1);
+  cx.fillStyle=Cl.F; cx.shadowColor=Cl.F; cx.shadowBlur=20;
+  cx.beginPath(); cx.roundRect(b1x, b1y, barW, b1h*eo(t1), 5); cx.fill(); cx.restore();
+  if(t1>0.5){
+    const k=(t1-0.5)/0.5;
+    label(b1x+barW/2, BY+BH+22, 'Required  F = P·cosθ', Cl.F, 'bold 11px Outfit', k, 'center');
+    label(b1x+barW/2, b1y-12,   `${fmt(p.F_friction,2)} N`,  Cl.F, 'bold 14px DM Mono', k, 'center');
+  }
+
+  /* Bar 2 — Max available Fmax */
+  const b2col = p.slips ? Cl.rose : Cl.green;
+  const b2x = BX+BW - barW - 70, b2h = p.Fmax*sc;
+  const b2y = BY+BH - b2h*eo(t2);
+  cx.save(); cx.globalAlpha=eo(t2);
+  cx.fillStyle=b2col; cx.shadowColor=b2col; cx.shadowBlur=20;
+  cx.beginPath(); cx.roundRect(b2x, b2y, barW, b2h*eo(t2), 5); cx.fill(); cx.restore();
+  if(t2>0.5){
+    const k=(t2-0.5)/0.5;
+    label(b2x+barW/2, BY+BH+22, 'Max  Fmax = μs·R', b2col, 'bold 11px Outfit', k, 'center');
+    label(b2x+barW/2, b2y-12,   `${fmt(p.Fmax,2)} N`, b2col, 'bold 14px DM Mono', k, 'center');
+  }
+
+  /* Dashed comparison line at F level */
+  if(t3>0){
+    cx.save(); cx.globalAlpha=eo(t3);
+    cx.strokeStyle=Cl.amber; cx.lineWidth=2; cx.setLineDash([7,4]);
+    cx.beginPath(); cx.moveTo(b1x, BY+BH-p.F_friction*sc);
+    cx.lineTo(b2x+barW, BY+BH-p.F_friction*sc); cx.stroke();
+    cx.setLineDash([]); cx.restore();
+  }
+
+  /* Verdict banner */
+  if(t4>0){
+    const a=eo(t4), col=p.slips?Cl.rose:Cl.green;
+    const msg = p.slips
+      ? `F (${fmt(p.F_friction,2)} N) > Fmax (${fmt(p.Fmax,2)} N)  →  Block SLIPS`
+      : `F (${fmt(p.F_friction,2)} N) ≤ Fmax (${fmt(p.Fmax,2)} N)  →  Block is STATIC  ∴ F = ${fmt(p.F_friction,2)} N`;
+    const bw=580, bh=38, bx=(cv.width-bw)/2, by=cv.height-50;
+    cx.save(); cx.globalAlpha=a;
+    cx.fillStyle=Cl.box; cx.strokeStyle=col; cx.lineWidth=1.5;
+    cx.beginPath(); cx.roundRect(bx,by,bw,bh,9); cx.fill(); cx.stroke(); cx.restore();
+    label(bx+bw/2, by+bh/2, msg, col, 'bold 13px Outfit', a, 'center');
+  }
+}
+
+/* ── PLACEHOLDER ── */
+function placeholder(){
+  bg(); const Cl=C(); const s=S(null);
+  // Ghost scene
+  cx.save(); cx.globalAlpha=0.13;
+  cx.fillStyle=Cl.gnd; cx.fillRect(0,s.GY,s.W,s.H-s.GY);
+  cx.strokeStyle=Cl.gndL; cx.lineWidth=2;
+  cx.beginPath(); cx.moveTo(0,s.GY); cx.lineTo(s.W,s.GY); cx.stroke();
+  cx.fillStyle=Cl.blk; cx.strokeStyle=Cl.blkStr; cx.lineWidth=2;
+  cx.beginPath(); cx.roundRect(s.BX,s.BY,s.BW,s.BH,5); cx.fill(); cx.stroke();
+  // Ghost rod
+  cx.strokeStyle=Cl.P; cx.lineWidth=4; cx.lineCap='round';
+  cx.beginPath(); cx.moveTo(s.tailX,s.tailY); cx.lineTo(s.pAX,s.pAY); cx.stroke();
+  cx.restore();
+  // Instructions
+  cx.save(); cx.globalAlpha=0.72;
+  label(s.W/2, s.H/2-36, '⚡ Enter values and click Solve & Animate', Cl.text, '700 17px Outfit', 1, 'center');
+  label(s.W/2, s.H/2,   'Part (a): θ=30° → find μs  |  Part (b): θ=45° → find F', Cl.muted, '13px Outfit', 1, 'center');
+  label(s.W/2, s.H/2+28,'R = mg + P·sinθ  (P·sinθ pushes block into the ground)', Cl.faint, '11px DM Mono', 0.8, 'center');
+  label(s.W/2, s.H/2+50,'Expected  (a): μs = 0.293   (b): F = 141.4 N  (STATIC)', Cl.faint, '11px DM Mono', 0.55, 'center');
+  cx.restore();
+}
+
+/* ── ANIMATION ── */
+function go(p, tab, sw=false){
+  if(raf){ cancelAnimationFrame(raf); raf=null; }
+  const badge=document.getElementById('badge');
+  function run(){
+    badge.classList.add('on');
+    const dur=2500, t0=performance.now();
+    function frame(now){
+      const tt=Math.min((now-t0)/dur,1);
+      cx.clearRect(0,0,cv.width,cv.height);
+      if(tab==='fbd')   drawFBD(p,tt);
+      else if(tab==='comps') drawComps(p,tt);
+      else              drawCheck(p,tt);
+      if(tt<1) raf=requestAnimationFrame(frame);
+      else     badge.classList.remove('on');
+    }
+    raf=requestAnimationFrame(frame);
+  }
+  if(sw){ cv.classList.add('sw'); setTimeout(()=>{ cv.classList.remove('sw'); run(); }, 280); }
+  else run();
+}
+
+/* ── LIVE WARNINGS ── */
+function warn(){
+  const el=document.getElementById('warnW'), txt=document.getElementById('warnTxt');
+  const lines=[];
+  ['inp_m','inp_g','inp_P','inp_theta','inp_mu'].forEach(id=>{
+    const e=document.getElementById(id); if(e) e.classList.remove('err');
+  });
+  const m=g('inp_m'), gv=g('inp_g'), P=g('inp_P'), th=g('inp_theta');
+
+  if(!isNaN(m) && m<=0){
+    document.getElementById('inp_m').classList.add('err');
+    lines.push('❌ <b>Mass must be > 0 kg.</b> Zero or negative mass has no physical meaning.');
+  }
+  if(!isNaN(gv) && gv<=0){
+    document.getElementById('inp_g').classList.add('err');
+    lines.push('❌ <b>Gravity g must be > 0 m/s².</b> Use 9.81 for Earth.');
+  }
+  if(!isNaN(P) && P<0){
+    document.getElementById('inp_P').classList.add('err');
+    lines.push('❌ <b>P cannot be negative.</b> It is a magnitude; direction is set by θ and the rod geometry.');
+  }
+  if(!isNaN(P) && P===0){
+    lines.push('ℹ️ <b>P = 0:</b> No applied force. R = mg, F = 0. Block stays put trivially.');
+  }
+  if(!isNaN(th)){
+    if(th<0){
+      document.getElementById('inp_theta').classList.add('err');
+      lines.push('❌ <b>θ cannot be negative.</b> In this problem θ is measured downward from horizontal (rod slopes down into block). Negative θ would mean the rod tilts upward — a different setup.');
+    } else if(th>90){
+      document.getElementById('inp_theta').classList.add('err');
+      lines.push('❌ <b>θ cannot exceed 90°.</b> At 90° the rod is vertical (P·cosθ=0, no sliding). Beyond 90° the horizontal component reverses — completely different problem.');
+    } else if(th===90){
+      lines.push('ℹ️ <b>θ = 90°:</b> Rod is vertical. P pushes straight down. P·cosθ = 0 → no horizontal force → F = 0. Block cannot slip regardless of P magnitude.');
+    } else if(th===0){
+      lines.push('ℹ️ <b>θ = 0°:</b> Purely horizontal force. P·sinθ = 0 → R = mg only. Normal reaction unchanged by P.');
+    }
+  }
+  if(MODE==='b'){
+    const mu=g('inp_mu');
+    if(!isNaN(mu) && mu<0){
+      document.getElementById('inp_mu').classList.add('err');
+      lines.push('❌ <b>μs cannot be negative.</b> Coefficient of friction ≥ 0 always.');
+    }
+    if(!isNaN(mu) && mu>2){
+      lines.push('⚠️ <b>μs > 2</b> is physically unusual. Typical range: 0.1–0.8.');
+    }
+  }
+  if(lines.length){ txt.innerHTML=lines.join('<br>'); el.classList.add('on'); }
+  else el.classList.remove('on');
+}
+['inp_m','inp_g','inp_P','inp_theta','inp_mu'].forEach(id=>{
+  const e=document.getElementById(id);
+  if(e){ e.addEventListener('input',warn); e.addEventListener('change',warn); }
+});
+
+/* ── VALIDATE ── */
+function validate(){
+  const em=document.getElementById('errMsg'); em.style.display='none';
+  const ids=MODE==='a'?['inp_m','inp_g','inp_P','inp_theta']:['inp_m','inp_g','inp_P','inp_theta','inp_mu'];
+  const lbl={inp_m:'Mass m',inp_g:'Gravity g',inp_P:'Force P',inp_theta:'Angle θ',inp_mu:'μs'};
+  for(const id of ids){
+    const e=document.getElementById(id);
+    if(!e||(e.value||'').trim()===''){
+      if(e) e.classList.add('err');
+      em.textContent=`"${lbl[id]}" is empty.`; em.style.display='block'; return false;
+    }
+    if(isNaN(parseFloat(e.value))){
+      e.classList.add('err');
+      em.textContent=`"${lbl[id]}" must be a number.`; em.style.display='block'; return false;
+    }
+  }
+  const m=g('inp_m'), gv=g('inp_g'), P=g('inp_P'), th=g('inp_theta');
+  if(m<=0){document.getElementById('inp_m').classList.add('err');em.textContent='❌ Mass must be > 0 kg.';em.style.display='block';return false;}
+  if(gv<=0){document.getElementById('inp_g').classList.add('err');em.textContent='❌ Gravity g must be > 0 m/s².';em.style.display='block';return false;}
+  if(P<0){document.getElementById('inp_P').classList.add('err');em.textContent='❌ P cannot be negative.';em.style.display='block';return false;}
+  if(th<0){document.getElementById('inp_theta').classList.add('err');em.textContent='❌ θ cannot be negative. Rod always slopes downward from P into block.';em.style.display='block';return false;}
+  if(th>90){document.getElementById('inp_theta').classList.add('err');em.textContent='❌ θ cannot exceed 90°. Beyond 90° the problem configuration is invalid.';em.style.display='block';return false;}
+  if(MODE==='b'){
+    const mu=g('inp_mu');
+    if(mu<0){document.getElementById('inp_mu').classList.add('err');em.textContent='❌ μs cannot be negative.';em.style.display='block';return false;}
+  }
+  return true;
+}
+
+/* ── COMPUTE ── */
+function compute(){
+  const m=g('inp_m'), gv=g('inp_g'), P=g('inp_P'), theta=g('inp_theta');
+  const tR=theta*Math.PI/180;
+  const W=m*gv;
+  const Px=P*Math.cos(tR);   // horizontal, rightward
+  const Py=P*Math.sin(tR);   // vertical, DOWNWARD (adds to weight)
+  const R=W+Py;              // R = mg + P·sinθ
+
+  if(MODE==='a'){
+    const mu_s = R>1e-9 ? Px/R : 0;
+    return{mode:'a',m,g:gv,W,P,theta,tR,Px,Py,R,mu_s,
+      F_friction:Px, Fmax:Px, slips:true};
+  } else {
+    const mu_s=g('inp_mu');
+    const Fmax=mu_s*R, F_friction=Px;
+    const slips=F_friction>Fmax+1e-9;
+    return{mode:'b',m,g:gv,W,P,theta,tR,Px,Py,R,mu_s,F_friction,Fmax,slips};
+  }
+}
+
+/* ── SHOW RESULTS ── */
+function showResults(p){
+  document.getElementById('resCard').style.display='block';
+  document.getElementById('modeTag').textContent=p.mode==='a'?'FIND μs':'FIND F';
+  document.getElementById('resSub').textContent=p.mode==='a'
+    ?'μs = P·cosθ / (mg + P·sinθ)'
+    :'F = P·cosθ, check F vs μs·R';
+
+  const ban=document.getElementById('resBanner'); let bh='';
+  if(p.P===0) bh=`<div class="cbanner cb-info">ℹ️ P = 0 — No applied force. F = 0, R = mg.</div>`;
+  else if(p.theta===90) bh=`<div class="cbanner cb-info">ℹ️ θ = 90° — Vertical rod. P·cosθ = 0, so F = 0. Block cannot slip.</div>`;
+  else if(p.mode==='b'&&p.slips) bh=`<div class="cbanner cb-rose">🔴 Block SLIPS — F = ${fmt(p.F_friction,2)} N exceeds Fmax = ${fmt(p.Fmax,2)} N</div>`;
+  else if(p.mode==='b'&&!p.slips) bh=`<div class="cbanner cb-green">🟢 Block is STATIC — F = ${fmt(p.F_friction,2)} N ≤ Fmax = ${fmt(p.Fmax,2)} N ✓</div>`;
+  ban.innerHTML=bh; ban.style.display=bh?'block':'none';
+
+  document.getElementById('chipsTop').innerHTML=`
+    <div class="chip"><div class="chip-acc"></div><div class="ck">Weight  W = mg</div>
+      <div class="cv">${fmt(p.W,2)}</div><div class="cu">N  ↓</div></div>
+    <div class="chip"><div class="chip-acc"></div><div class="ck">P·sinθ  (downward ↓)</div>
+      <div class="cv">${fmt(p.Py,2)}</div><div class="cu">N</div></div>
+    <div class="chip"><div class="chip-acc"></div><div class="ck">Normal  R = mg + P·sinθ</div>
+      <div class="cv">${fmt(p.R,2)}</div><div class="cu">N  ↑</div></div>
+    <div class="chip"><div class="chip-acc"></div><div class="ck">P·cosθ  (rightward →)</div>
+      <div class="cv">${fmt(p.Px,2)}</div><div class="cu">N</div></div>`;
+
+  document.getElementById('rlbl2').textContent=p.mode==='a'?'Coefficient of Friction':'Friction Force';
+  let bot='';
+  if(p.mode==='a'){
+    bot=`<div class="chip big"><div class="chip-acc"></div>
+      <div class="ck">μs = P·cosθ / R = ${fmt(p.Px,2)} / ${fmt(p.R,2)}</div>
+      <div class="cv">${fmt(p.mu_s,4)}</div>
+      <div class="cu">coefficient of static friction</div></div>`;
+  } else {
+    const cl=p.slips?'slip':'stat';
+    bot=`
+      <div class="chip"><div class="chip-acc"></div><div class="ck">Required  F = P·cosθ</div>
+        <div class="cv">${fmt(p.F_friction,2)}</div><div class="cu">N</div></div>
+      <div class="chip"><div class="chip-acc"></div><div class="ck">Max  Fmax = μs·R</div>
+        <div class="cv">${fmt(p.Fmax,2)}</div><div class="cu">N</div></div>
+      <div class="chip big ${cl}"><div class="chip-acc"></div>
+        <div class="ck">${p.slips?'F > Fmax  →  block SLIPS':'Actual friction force (STATIC)'}</div>
+        <div class="cv">${fmt(p.F_friction,2)}</div>
+        <div class="cu">${p.slips?'N — slides':'N — equilibrium'}</div></div>`;
+  }
+  document.getElementById('chipsBot').innerHTML=bot;
+  buildEq(p); buildSteps(p);
+}
+
+function buildEq(p){
+  const bc=dark?'#63b3ed':'#2b6cb0', tc=dark?'#4fd1c5':'#2c7a7b',
+        ac=dark?'#f6ad55':'#c05621', gc=dark?'#68d391':'#276749',
+        rc=dark?'#fc8181':'#c53030';
+  let h;
+  if(p.mode==='a'){
+    h=`<span style="color:${bc}">ΣFy = 0:</span>  R − mg − P·sinθ = 0<br>`+
+      `<span style="color:${bc}">R</span> = mg + P·sinθ = ${fmt(p.W,2)} + ${fmt(p.Py,2)} = <b>${fmt(p.R,2)} N</b><br><br>`+
+      `<span style="color:${ac}">ΣFx = 0:</span>  P·cosθ − μs·R = 0  (at impending slip: F = μs·R)<br>`+
+      `<span style="color:${ac}">μs</span> = P·cosθ / R = ${fmt(p.Px,2)} / ${fmt(p.R,2)}<br>`+
+      `<b style="color:${ac}">μs = ${fmt(p.mu_s,4)}</b>`;
+  } else {
+    const col=p.slips?rc:gc;
+    h=`<span style="color:${bc}">ΣFy = 0:</span>  R = mg + P·sinθ = ${fmt(p.W,2)} + ${fmt(p.Py,2)} = <b>${fmt(p.R,2)} N</b><br><br>`+
+      `<span style="color:${ac}">ΣFx = 0:</span>  F = P·cosθ = ${fmt(p.P,1)}·cos(${fmt(p.theta,1)}°) = <b>${fmt(p.Px,2)} N</b><br><br>`+
+      `<span style="color:${tc}">Fmax</span> = μs·R = ${fmt(p.mu_s,4)} × ${fmt(p.R,2)} = <b>${fmt(p.Fmax,2)} N</b><br><br>`+
+      `<b style="color:${col}">${p.slips
+        ?`F (${fmt(p.F_friction,2)}) > Fmax (${fmt(p.Fmax,2)})  →  Block SLIPS`
+        :`F (${fmt(p.F_friction,2)}) ≤ Fmax (${fmt(p.Fmax,2)})  →  STATIC  ∴ F = ${fmt(p.F_friction,2)} N`}</b>`;
+  }
+  document.getElementById('eqBox').innerHTML=h;
+}
+
+function buildSteps(p){
+  const s = p.mode==='a' ? [
+    {t:'1. Given data',
+     d:`m=${fmt(p.m,0)} kg, g=${fmt(p.g,2)} m/s², P=${fmt(p.P,0)} N, θ=${fmt(p.theta,0)}°. Block is on the verge of slipping (impending motion).`,
+     m:`W = mg = ${fmt(p.m,0)} × ${fmt(p.g,2)} = ${fmt(p.W,2)} N`},
+    {t:'2. Vertical equilibrium  ΣFy = 0',
+     d:'The rod pushes downward into the block, so P·sinθ adds to weight. The ground pushes back with R.',
+     m:`R − mg − P·sinθ = 0\nR = mg + P·sinθ\nR = ${fmt(p.W,2)} + ${fmt(p.P,0)}·sin(${fmt(p.theta,0)}°)\nR = ${fmt(p.W,2)} + ${fmt(p.Py,2)} = ${fmt(p.R,2)} N`},
+    {t:'3. Horizontal equilibrium  ΣFx = 0',
+     d:'At impending slip, friction is at its maximum: F = μs·R. The only horizontal driving force is P·cosθ.',
+     m:`P·cosθ − μs·R = 0\nμs = P·cosθ / R = ${fmt(p.Px,2)} / ${fmt(p.R,2)}`},
+    {t:'4. Answer',
+     d:'Coefficient of static friction between block and surface.',
+     m:`μs = ${fmt(p.mu_s,4)}`},
+  ] : [
+    {t:'1. Given data',
+     d:`m=${fmt(p.m,0)} kg, g=${fmt(p.g,2)} m/s², P=${fmt(p.P,0)} N, θ=${fmt(p.theta,0)}°, μs=${fmt(p.mu_s,4)}.`,
+     m:`W = mg = ${fmt(p.W,2)} N`},
+    {t:'2. Vertical equilibrium  ΣFy = 0',
+     d:'P·sinθ is downward (rod pushes block into ground), increasing normal reaction.',
+     m:`R = mg + P·sinθ\nR = ${fmt(p.W,2)} + ${fmt(p.P,0)}·sin(${fmt(p.theta,0)}°)\nR = ${fmt(p.W,2)} + ${fmt(p.Py,2)} = ${fmt(p.R,2)} N`},
+    {t:'3. Horizontal equilibrium  ΣFx = 0',
+     d:'Friction must balance the horizontal component of P to keep the block in equilibrium.',
+     m:`F = P·cosθ = ${fmt(p.P,0)}·cos(${fmt(p.theta,0)}°) = ${fmt(p.Px,2)} N`},
+    {t:'4. Maximum available friction',
+     d:'Check if the surface can provide enough friction.',
+     m:`Fmax = μs × R = ${fmt(p.mu_s,4)} × ${fmt(p.R,2)} = ${fmt(p.Fmax,2)} N`},
+    {t:`5. Conclusion — block ${p.slips?'SLIPS':'stays STATIC'}`,
+     d:p.slips
+       ?`Required friction ${fmt(p.F_friction,2)} N > maximum ${fmt(p.Fmax,2)} N. Block slides.`
+       :`Required friction ${fmt(p.F_friction,2)} N ≤ maximum ${fmt(p.Fmax,2)} N. Block stays. The actual friction force is F = ${fmt(p.F_friction,2)} N (not μs·R — that is only at impending slip).`,
+     m:p.slips
+       ?`${fmt(p.F_friction,2)} N > ${fmt(p.Fmax,2)} N  →  SLIPS`
+       :`${fmt(p.F_friction,2)} N ≤ ${fmt(p.Fmax,2)} N  →  STATIC\nF = ${fmt(p.F_friction,2)} N`},
+  ];
+  document.getElementById('stepsWrap').innerHTML=`<div class="steps">${s.map((st,i)=>`
+    <div class="step">
+      <div class="snum">${i+1}</div>
+      <div><div class="stitle">${st.t}</div>
+        <div class="sdesc">${st.d}</div>
+        <div class="math">${st.m.replace(/\n/g,'<br>')}</div></div>
+    </div>`).join('')}</div>`;
+}
+
+/* ── SOLVE BUTTON ── */
+document.getElementById('solveBtn').addEventListener('click',()=>{
+  document.getElementById('errMsg').style.display='none';
+  ['inp_m','inp_g','inp_P','inp_theta','inp_mu'].forEach(id=>{
+    const e=document.getElementById(id); if(e) e.classList.remove('err');
+  });
+  if(!validate()) return;
+  const p=compute();
+  window.P=p;
+  showResults(p);
+  go(p, window.TAB||'fbd', false);
+});
+
+/* ── TABS ── */
+document.querySelectorAll('.tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b===btn));
+    window.TAB=btn.dataset.tab;
+    if(window.P) go(window.P,window.TAB,true); else placeholder();
+  });
+});
+
+document.querySelectorAll('.iw input').forEach(e=>{
+  e.addEventListener('keydown',ev=>{ if(ev.key==='Enter') document.getElementById('solveBtn').click(); });
+});
+
+warn();
+placeholder();
+</script>
+</body>
+</html>
